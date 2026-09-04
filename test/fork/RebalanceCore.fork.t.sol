@@ -21,7 +21,7 @@ contract RebalanceCoreFork is BaseTest {
     using StateLibrary for IPoolManager;
 
     address constant HOOK = 0x33e924fb8663871bAb61D6844e79CDea159C60c0;
-    address constant SAFE = RobinhoodV4.FLOCK_SAFE;
+    address SAFE; // whoever owns the core NFT on the forked block
     uint256 constant CORE_TOKEN_ID = 1701445;
 
     IERC20 flock = IERC20(RobinhoodV4.FLOCK);
@@ -38,12 +38,13 @@ contract RebalanceCoreFork is BaseTest {
         deployArtifactsAndLabel();
         vm.setEnv("HOOK_ADDRESS", vm.toString(HOOK));
         vm.setEnv("CORE_TOKEN_ID", vm.toString(CORE_TOKEN_ID));
+        SAFE = IERC721Owner(address(positionManager)).ownerOf(CORE_TOKEN_ID);
     }
 
     function _plan() internal returns (RebalanceCoreScript.Plan memory p, RebalanceCoreScript.Tx[] memory txs) {
         RebalanceCoreScript s = new RebalanceCoreScript();
         (p, txs) = s.build();
-        assertEq(p.owner, SAFE, "core NFT must be owned by the Safe");
+        assertEq(p.owner, SAFE, "plan must target the current NFT owner");
     }
 
     function _execute(RebalanceCoreScript.Tx[] memory txs) internal {
