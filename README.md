@@ -40,7 +40,7 @@ deploy script rejects addresses starting with `0x91`.
 
 | Parameter | Default | Meaning |
 |---|---|---|
-| `baseFee` | 3_000 (0.30%) | steady state; keeps the pool competitive with the two-hop FLOCK→USDG→GOOGL route (~0.34%) so routers actually use it |
+| `baseFee` | 3_000 (0.30%) | steady state; keeps the pool competitive with the two-hop FLOCK→USDG→GOOGL route (0.25% + 0.30% on the active pools) so routers use it |
 | `minFee` / `maxFee` | 2_500 / 10_000 | clamp; `maxFee` ≤ `HARD_MAX_FEE` = 100_000 (10%) |
 | `launchFee` / `launchSeconds` | 10_000 / 1_800 | 1% at unpause, decaying linearly to `baseFee` over 30 minutes (time-based; `block.number` on Robinhood is the Ethereum L1 block) |
 | `closedMarketFee` | 6_000 (0.60%) | applied from Friday 20:00 UTC to Monday 14:30 UTC (covers NYSE hours in both DST regimes); US holidays are not modelled |
@@ -62,6 +62,7 @@ script/02_InitializeAndSeed.s.sol initialise through the hook (owner, paused) �
 script/03_SmokeSwap.s.sol         quote with V4Quoter and swap through the Universal Router
 script/04_ReadState.s.sol         read-only status for the launch checklist / monitoring
 script/05_AddCoreLiquidity.s.sol  two-sided position straddling spot (exact stock-token leg, FLOCK leg derived)
+script/06_RebalanceCore.s.sol     builds (never broadcasts) a Safe batch moving part of a position into a stock-only band above spot
 review-poc/                       PoC tests from the internal security review (against earlier revisions; not compiled)
 ```
 
@@ -185,7 +186,8 @@ issuer controls (pause/block/admin burn), US holidays not in the closed-market w
 - **Single-sided band ends at spot.** Until the first GOOGL→FLOCK buy, active liquidity is 0 and FLOCK→GOOGL
   sells revert (there is nothing to sell into). If the price falls below the band all FLOCK is sold and buys revert
   until liquidity is re-ranged; if the price moves above the initial tick there is no liquidity above it either.
-  A small two-sided position straddling spot removes both edges (see `05_AddCoreLiquidity`).
+  A small two-sided position straddling spot removes both edges (see `05_AddCoreLiquidity`); a stock-only band further above
+  spot lets arbitrage keep tracking the pool price after larger moves (see `06_RebalanceCore`).
 - **Third-party LPs are allowed.** They share fee income and can JIT the pool; the alternative (hook-owned,
   single-LP liquidity) needs the hook to custody positions and was judged too much surface for a pilot.
 - **Fee income is LP income.** The hook never custodies funds and takes no share of any swap.

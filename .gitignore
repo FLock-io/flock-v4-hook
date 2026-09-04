@@ -20,3 +20,6 @@ node_modules/
 # Forge broadcast artifacts: rehearsals on an anvil fork of 4663 are indistinguishable from mainnet runs,
 # so none are tracked. Mainnet runs are recorded in deployments/*.json (written by 00) and on-chain.
 /broadcast/
+
+# Safe Transaction Builder batches are generated per run and handed to the signers; not tracked.
+/safe-batches/
