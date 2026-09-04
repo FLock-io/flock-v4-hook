@@ -15,7 +15,7 @@
     87060,
     90660
   ],
-  "lpRecipient": "0x6052279aa6BF2E145eDafC7042A9BD6b4A80d31f",
+  "lpRecipient": "0xD0d40326aA8eb62B28441B0b73B8cD92DF475ea3 (moved from 0x6052\u2026d31f on 2026-09-04)",
   "sourceSha256Prefix": "b94e5a168edb07ad",
   "sourcify": "match (creation+runtime)",
   "blockscout": "pending (Cloudflare blocked API submission)",
@@ -150,5 +150,16 @@
       91260
     ]
   },
-  "unpausedAt": "2026-09-04T00:28:20Z (launchTs 1788481700)"
+  "unpausedAt": "2026-09-04T00:28:20Z (launchTs 1788481700)",
+  "lpPositions": {
+    "owner": "0xD0d40326aA8eb62B28441B0b73B8cD92DF475ea3",
+    "nfts": {
+      "1700129": "FLOCK band 87060-90660 (seed)",
+      "1701667": "FLOCK band 87060-90660 (extra)",
+      "1701445": "two-sided 90060-91260 (reduced 30% on 2026-09-04)",
+      "1784246": "GOOGL-only band 91260-93660 (minted from the 30% decrease)"
+    },
+    "transferFromGovernanceSafeTx": "main Safe nonce 3 (safeTxHash 0xf8209e43cefac338acb19af7e4daa2cbe9901ea643e7be53821f6e5590e27b43)",
+    "rebalanceTx": "0xff08e64bceab2a0e3d1860cf37fc96afa7ad6d7dda0eb1cfac825083ec87b2c6"
+  }
 }
