@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {CurrencyLibrary, Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {Actions} from "@uniswap/v4-periphery/src/libraries/Actions.sol";
@@ -33,20 +34,42 @@ contract LiquidityHelpers is BaseScript {
         return (actions, params);
     }
 
-    function tokenApprovals() public {
-        if (!currency0.isAddressZero()) {
-            token0.approve(address(permit2), type(uint256).max);
-            permit2.approve(address(token0), address(positionManager), type(uint160).max, type(uint48).max);
-        }
+    /// @dev Approve exactly what the PositionManager needs, through Permit2, for both pool currencies.
+    ///      Amounts are capped to the configured maxima instead of type(uint).max so a leaked approval
+    ///      cannot drain the seeding wallet.
+    function tokenApprovals(uint256 amount0Max, uint256 amount1Max) public {
+        _approveCurrency(currency0, amount0Max);
+        _approveCurrency(currency1, amount1Max);
+    }
 
-        if (!currency1.isAddressZero()) {
-            token1.approve(address(permit2), type(uint256).max);
-            permit2.approve(address(token1), address(positionManager), type(uint160).max, type(uint48).max);
-        }
+    function _approveCurrency(Currency currency, uint256 amountMax) internal {
+        if (currency.isAddressZero() || amountMax == 0) return;
+        IERC20 token = IERC20(Currency.unwrap(currency));
+        token.approve(address(permit2), amountMax);
+        permit2.approve(
+            Currency.unwrap(currency), address(positionManager), uint160(amountMax), uint48(block.timestamp + 1 days)
+        );
+    }
+
+    /// @dev Zero the Permit2 and ERC20 allowances left behind by `tokenApprovals`.
+    function revokeApprovals() public {
+        _revokeCurrency(currency0);
+        _revokeCurrency(currency1);
+    }
+
+    function _revokeCurrency(Currency currency) internal {
+        if (currency.isAddressZero()) return;
+        address token = Currency.unwrap(currency);
+        (uint160 amount,,) = permit2.allowance(deployerAddress, token, address(positionManager));
+        if (amount != 0) permit2.approve(token, address(positionManager), 0, 0);
+        if (IERC20(token).allowance(deployerAddress, address(permit2)) != 0) IERC20(token).approve(address(permit2), 0);
     }
 
     function truncateTickSpacing(int24 tick, int24 tickSpacing) internal pure returns (int24) {
         /// forge-lint: disable-next-line(divide-before-multiply)
-        return ((tick / tickSpacing) * tickSpacing);
+        int24 truncated = (tick / tickSpacing) * tickSpacing;
+        // Solidity truncates toward zero; for negative ticks round down so the tick stays below `tick`.
+        if (tick < 0 && truncated != tick) truncated -= tickSpacing;
+        return truncated;
     }
 }

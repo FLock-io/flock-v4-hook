@@ -10,32 +10,37 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {IPositionManager} from "@uniswap/v4-periphery/src/interfaces/IPositionManager.sol";
 import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
 
-import {IUniswapV4Router04} from "hookmate/interfaces/router/IUniswapV4Router04.sol";
-import {AddressConstants} from "hookmate/constants/AddressConstants.sol";
-
 import {Deployers} from "test/utils/Deployers.sol";
+import {RobinhoodV4} from "../../src/libraries/RobinhoodV4.sol";
 
-/// @notice Shared configuration between scripts
+/// @notice Shared configuration between scripts.
+/// @dev Pair configuration comes from the environment so the same scripts serve every FLOCK/<stock> pool:
+///      - STOCK_TOKEN   : the Robinhood Stock Token to pair with FLOCK (default GOOGL)
+///      - HOOK_ADDRESS  : the deployed hook (address(0) until 00_DeployHook has run)
+///      - V4_SWAP_ROUTER: optional hookmate router already deployed on Robinhood (for smoke swaps)
+///      FLOCK itself is fixed to the canonical address and is never overridable.
 contract BaseScript is Script, Deployers {
     address immutable deployerAddress;
 
-    /////////////////////////////////////
-    // --- Configure These ---
-    /////////////////////////////////////
-    IERC20 internal constant token0 = IERC20(0x0165878A594ca255338adfa4d48449f69242Eb8F);
-    IERC20 internal constant token1 = IERC20(0xa513E6E4b8f2a923D98304ec87F64353C4D5C853);
-    IHooks constant hookContract = IHooks(address(0));
-    /////////////////////////////////////
+    IERC20 internal immutable flock;
+    IERC20 internal immutable stockToken;
+    IHooks internal immutable hookContract;
 
     Currency immutable currency0;
     Currency immutable currency1;
 
     constructor() {
-        // Make sure artifacts are available, either deploy or configure.
+        require(block.chainid == RobinhoodV4.CHAIN_ID, "BaseScript: run against Robinhood Chain (or an anvil fork of it)");
+        require(RobinhoodV4.POOL_MANAGER.code.length > 0, "BaseScript: PoolManager has no code on this RPC");
         deployArtifacts();
 
         deployerAddress = getDeployer();
 
+        flock = IERC20(RobinhoodV4.FLOCK);
+        stockToken = IERC20(vm.envOr("STOCK_TOKEN", RobinhoodV4.GOOGL));
+        hookContract = IHooks(vm.envOr("HOOK_ADDRESS", address(0)));
+
+        require(address(stockToken) != address(flock), "BaseScript: stock token must differ from FLOCK");
         (currency0, currency1) = getCurrencies();
 
         vm.label(address(permit2), "Permit2");
@@ -43,9 +48,8 @@ contract BaseScript is Script, Deployers {
         vm.label(address(positionManager), "V4PositionManager");
         vm.label(address(swapRouter), "V4SwapRouter");
 
-        vm.label(address(token0), "Currency0");
-        vm.label(address(token1), "Currency1");
-
+        vm.label(address(flock), "FLOCK");
+        vm.label(address(stockToken), "StockToken");
         vm.label(address(hookContract), "HookContract");
     }
 
@@ -57,14 +61,22 @@ contract BaseScript is Script, Deployers {
         }
     }
 
-    function getCurrencies() internal pure returns (Currency, Currency) {
-        require(address(token0) != address(token1));
+    function _configuredSwapRouter() internal view override returns (address) {
+        return vm.envOr("V4_SWAP_ROUTER", address(0));
+    }
 
-        if (token0 < token1) {
-            return (Currency.wrap(address(token0)), Currency.wrap(address(token1)));
+    /// @dev Currencies sorted the way the PoolManager expects (currency0 < currency1).
+    function getCurrencies() internal view returns (Currency, Currency) {
+        if (address(stockToken) < address(flock)) {
+            return (Currency.wrap(address(stockToken)), Currency.wrap(address(flock)));
         } else {
-            return (Currency.wrap(address(token1)), Currency.wrap(address(token0)));
+            return (Currency.wrap(address(flock)), Currency.wrap(address(stockToken)));
         }
+    }
+
+    /// @dev True when FLOCK is currency1 (e.g. GOOGL/FLOCK, TSLA/FLOCK); false when FLOCK is currency0 (FLOCK/NVDA).
+    function flockIsCurrency1() internal view returns (bool) {
+        return address(stockToken) < address(flock);
     }
 
     function getDeployer() internal returns (address) {

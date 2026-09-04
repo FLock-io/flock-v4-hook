@@ -1,0 +1,154 @@
+{
+  "deployer": "0x091e6E476D026edB209477aFee27AF92EC00F10c",
+  "hook": "0x33e924fb8663871bAb61D6844e79CDea159C60c0",
+  "owner": "0x091e6E476D026edB209477aFee27AF92EC00F10c",
+  "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000002c8c",
+  "timestamp": 1788480619,
+  "poolId": "0x36970ce890b23025bb717709b31395a889747e6dd6d5b65bbc9e9e7e073ceff1",
+  "stockToken": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+  "pair": "GOOGL/FLOCK",
+  "tickSpacing": 60,
+  "initTick": 90692,
+  "seedFlock": 1080000,
+  "band": [
+    87060,
+    90660
+  ],
+  "lpRecipient": "0x6052279aa6BF2E145eDafC7042A9BD6b4A80d31f",
+  "sourceSha256Prefix": "b94e5a168edb07ad",
+  "sourcify": "match (creation+runtime)",
+  "blockscout": "pending (Cloudflare blocked API submission)",
+  "transactions": {
+    "00_DeployHook": [
+      {
+        "function": "create",
+        "hash": "0x58c3f373d8f3427a0d59b82a100cc946585947a95de7eedb19077106c2a1b375"
+      }
+    ],
+    "01_RegisterPool": [
+      {
+        "function": "registerPool((address,address,uint24,int24,address),(uint24,uint24,uint24,uint24,uint24,uint32,uint128))",
+        "hash": "0x405a08049482fb1da3db47fc1a544b34b4cb6d717f45393ad39cbf6f000f9cd3"
+      }
+    ],
+    "02_InitializeAndSeed": [
+      {
+        "function": "initializePool((address,address,uint24,int24,address),uint160)",
+        "hash": "0xdc86c12a16fbecf6d9d9d0f21b70ee4ad627e8fba6d422a654ddb14349d27451"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x8a2bb4347c69adbf80fda8f4e66710169747fbbca8eb75181b974c80a524b70e"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x02fa2f18a78e86df9ca3f1d14695d9558263ff1b3228184b32aad6c756df0850"
+      },
+      {
+        "function": "modifyLiquidities(bytes,uint256)",
+        "hash": "0x57fc76860158b7a35250ea1031c02c2362836456897eaaeb0e21caae3cbab3a3"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x90f0c2d00fde4fe4c24cd6b4a69a6d6792485382f40678cf60746dc475a5237c"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0xafd5b01ec4f811d67166635f1828453925e40b5d73590aaa8206240231f90195"
+      }
+    ],
+    "05_AddCoreLiquidity": [
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x5c9808aac33dbf36397e11d568be1e9bbcd5228e33a0447d4b63c407ac87b1e2"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x22bd53c85e74e634a673e2b4eb00093576694f2c9b0420a78edf62f509933ab7"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x8f7d4dca6a06371cc74904f16907faa9927901497e7f410d375ad0f1ff93efc6"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x44ce48a54a29a3ffb2c5749a75810aeeca1ad4507320255d6828d12718d254fa"
+      },
+      {
+        "function": "modifyLiquidities(bytes,uint256)",
+        "hash": "0x36f706ee42a42ac14a6d8d4fe3741040fd2f4b73100f8557d439fabb7b444568"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x153ae937cd74fe3a69d2becb26aca2689cc58acd135a09467028415a33393204"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0xdb6dd90bb1cc637d8836ffe6f47fb413492dfbf26cc9c0f93e44243fbd5cee2f"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0xc186a3899b8da6fb1b3a5165e1ca7edea260310c259bd2071869e4590d5c80fb"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x3393b301edd3ce22a339261290d1b44adaa80e6d62a42450d2f2aff7c7be5123"
+      }
+    ],
+    "02_extraBand": [
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0xe6787307b75296785d71c9c297552a27ec1f39a41b9e82162f5f084c50e61ee3"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0xcdaf3792d049a2b57f2e48aebd88eddfaa8312f034f1615a354fc353aec7795d"
+      },
+      {
+        "function": "modifyLiquidities(bytes,uint256)",
+        "hash": "0x5ffb696db4a2c5b4690473bcfdfd5da90028034a5acc914df0c8ecaa413d69a0"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x0054b67c1d189344c2adc2d26fd478c38191d3070ca53015af8bf19e12b462d4"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x821831cdfd335930f6c5466a97f08013504a04a17a66cea441af5bed4749fc10"
+      }
+    ],
+    "03_SmokeSwap_last": [
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0xc307d5318b775b5b6bd90e2b3ca3335396d48a35113970a1f1f0e4dd89c2a9f7"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x544d1c6bf5235aea919d5fee7d176c8aa5568977d65afc3d441e7239d04b593c"
+      },
+      {
+        "function": "execute(bytes,bytes[],uint256)",
+        "hash": "0xc0240b6ea2e06f0fcf9d16e597ff231efd1700764a25bd82146eaa35c473dd25"
+      },
+      {
+        "function": "approve(address,address,uint160,uint48)",
+        "hash": "0x9f31b32ff2fdb6dbb61b88db61ba2da2145797e9a5f7e74bd8ddefc630323468"
+      },
+      {
+        "function": "approve(address,uint256)",
+        "hash": "0x8f8bd778da6a6c86cf6cbf4c88f7aafa85ff0c2bdee46662acd387d03092007e"
+      }
+    ],
+    "open_setPaused_false": "0xca0974cf782cd00fda1c58e1b33c3a381acb316b0a0453560523f33a500eb4f5"
+  },
+  "core": {
+    "googl": 20,
+    "flock": 192847,
+    "band": [
+      90060,
+      91260
+    ]
+  },
+  "unpausedAt": "2026-09-04T00:28:20Z (launchTs 1788481700)"
+}

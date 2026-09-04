@@ -17,16 +17,17 @@ import {V4PoolManagerDeployer} from "hookmate/artifacts/V4PoolManager.sol";
 import {V4PositionManagerDeployer} from "hookmate/artifacts/V4PositionManager.sol";
 import {V4RouterDeployer} from "hookmate/artifacts/V4Router.sol";
 
+import {RobinhoodV4} from "../../src/libraries/RobinhoodV4.sol";
+
 /**
- * Base Deployer Contract for Hook Testing
+ * Base Deployer Contract for Hook Testing and Scripts.
  *
- * Automatically does the following:
- * 1. Setup deployments for Permit2, PoolManager, PositionManager and V4SwapRouter.
- * 2. Check if chainId is 31337, is so, deploys local instances.
- * 3. If not, uses existing canonical deployments on the selected network.
- * 4. Provides utility functions to deploy tokens and currency pairs.
- *
- * This contract can be used for both local testing and fork testing.
+ * 1. On anvil (31337) deploys local Permit2, PoolManager, PositionManager and a V4 swap router.
+ * 2. On Robinhood Chain (4663) uses the canonical Uniswap v4 deployments from `RobinhoodV4`
+ *    (hookmate's AddressConstants does not know chain 4663). The swap router is either a
+ *    configured address (`_configuredSwapRouter()`) or, when allowed (tests / forks), a locally
+ *    deployed hookmate V4Router so fork tests can swap without the Universal Router encoding.
+ * 3. On every other chain falls back to hookmate's AddressConstants.
  */
 abstract contract Deployers {
     IPermit2 permit2;
@@ -61,7 +62,7 @@ abstract contract Deployers {
         address permit2Address = AddressConstants.getPermit2Address();
 
         if (permit2Address.code.length > 0) {
-            // Permit2 is already deployed, no need to etch it.
+            // Permit2 is already deployed (true on Robinhood Chain mainnet and forks).
         } else {
             _etch(permit2Address, Permit2Deployer.deploy().code);
         }
@@ -72,6 +73,8 @@ abstract contract Deployers {
     function deployPoolManager() internal virtual {
         if (block.chainid == 31337) {
             poolManager = IPoolManager(V4PoolManagerDeployer.deploy(address(0x4444)));
+        } else if (block.chainid == RobinhoodV4.CHAIN_ID) {
+            poolManager = IPoolManager(RobinhoodV4.POOL_MANAGER);
         } else {
             poolManager = IPoolManager(AddressConstants.getPoolManagerAddress(block.chainid));
         }
@@ -84,6 +87,8 @@ abstract contract Deployers {
                     address(poolManager), address(permit2), 300_000, address(0), address(0)
                 )
             );
+        } else if (block.chainid == RobinhoodV4.CHAIN_ID) {
+            positionManager = IPositionManager(RobinhoodV4.POSITION_MANAGER);
         } else {
             positionManager = IPositionManager(AddressConstants.getPositionManagerAddress(block.chainid));
         }
@@ -92,9 +97,28 @@ abstract contract Deployers {
     function deployRouter() internal virtual {
         if (block.chainid == 31337) {
             swapRouter = IUniswapV4Router04(payable(V4RouterDeployer.deploy(address(poolManager), address(permit2))));
+        } else if (block.chainid == RobinhoodV4.CHAIN_ID) {
+            address configured = _configuredSwapRouter();
+            if (configured != address(0)) {
+                swapRouter = IUniswapV4Router04(payable(configured));
+            } else if (_allowLocalRouterDeploy()) {
+                swapRouter =
+                    IUniswapV4Router04(payable(V4RouterDeployer.deploy(address(poolManager), address(permit2))));
+            }
+            // else: no swap router (deployment / liquidity scripts do not need one)
         } else {
             swapRouter = IUniswapV4Router04(payable(AddressConstants.getV4SwapRouterAddress(block.chainid)));
         }
+    }
+
+    /// @dev Swap router to use on Robinhood Chain when one is already deployed (scripts read it from env).
+    function _configuredSwapRouter() internal view virtual returns (address) {
+        return address(0);
+    }
+
+    /// @dev Whether a local hookmate router may be deployed on Robinhood Chain (true for tests/forks only).
+    function _allowLocalRouterDeploy() internal view virtual returns (bool) {
+        return false;
     }
 
     function _etch(address, bytes memory) internal virtual {

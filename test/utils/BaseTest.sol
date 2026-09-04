@@ -23,6 +23,11 @@ contract BaseTest is Test, Deployers {
         vm.label(Currency.unwrap(currency1), "Currency1");
     }
 
+    /// @dev Tests (including Robinhood mainnet forks) may deploy a local hookmate router for swaps.
+    function _allowLocalRouterDeploy() internal pure override returns (bool) {
+        return true;
+    }
+
     function _etch(address target, bytes memory bytecode) internal override {
         vm.etch(target, bytecode);
     }
